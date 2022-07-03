@@ -25,7 +25,7 @@ var authCmd = &cobra.Command{
 	Use: "auth",
 	Short: "Authenticate your account to allow fetching entries",
 	Run: func(_ *cobra.Command, _ []string) {
-		Authenticate()
+		AuthenticateCmd()
 	},
 }
 
@@ -86,7 +86,7 @@ func AutherizeUser(consumerKey, requestToken string) (username, accessToken stri
 	return username, accessToken, nil
 }
 
-func WriteFile(data map[string]string, filename string) error {
+func WriteFile(data AuthInfo, filename string) error {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func AskUser(requestToken string) {
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
 
-func Authenticate() {
+func AuthenticateCmd() {
 	consumerKey, ok := os.LookupEnv("POCKET_CONSUMER_KEY")
 	if !ok {
 		log.Fatal("Consumer key was not found")
@@ -124,10 +124,10 @@ func Authenticate() {
 		log.Fatalf("An error occured while trying to authorize user: %v", err)
 	}
 
-	authInfo := map[string]string {
-		"pocket_consumer_key": consumerKey,
-		"pocket_username": username,
-		"pocket_access_token": accessToken,
+	authInfo := AuthInfo{
+		ConsumerKey: consumerKey,
+		Username: username,
+		AccessToken: accessToken,
 	}
 	err = WriteFile(authInfo, "auth.json")
 	if err != nil {
