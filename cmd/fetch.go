@@ -7,147 +7,30 @@
 package cmd
 
 import (
-	"bytes"
-	"database/sql"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
+	"git.sr.ht/~mmohammadi9812/pockesql/src"
 	"github.com/schollz/progressbar/v3"
-	_ "modernc.org/sqlite"
 )
-
-type AuthInfo struct {
-	ConsumerKey string `json:"consumer_key"`
-	Username    string `json:"username"`
-	AccessToken string `json:"access_token"`
-}
 
 const (
 	PAGE_SIZE int = 500
 	RETRY_SLEEP int = 3
 )
 
-func ReadAuth() (AuthInfo, error) {
-	fbytes, err := ioutil.ReadFile("auth.json")
-	if err != nil {
-		return AuthInfo{}, err
-	}
-	inf := AuthInfo{}
-	err = json.Unmarshal(fbytes, &inf)
-	if err != nil {
-		return AuthInfo{}, err
-	}
-	return inf, nil
-}
-
-func TotalItems(auth AuthInfo) (int, error) {
-	statUrl := "https://getpocket.com/v3/stats"
-	data := map[string]string{
-		"consumer_key": auth.ConsumerKey,
-		"access_token": auth.AccessToken,
-	}
-	payloadBuffer := new(bytes.Buffer)
-	json.NewEncoder(payloadBuffer).Encode(data)
-	resp, err := http.Post(statUrl, "application/json", payloadBuffer)
-	if err != nil {
-		return -1, err
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return -2, err
-	}
-
-	var objMap map[string]interface{}
-	err = json.Unmarshal(bodyBytes, &objMap)
-	if err != nil {
-		return -3, err
-	}
-
-	return objMap["count_list"].(int), nil
-}
-
-func openDb(filename string) (*sql.DB, error) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-	fn := filepath.Join(pwd, filename)
-	db, err := sql.Open("sqlite", fn)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
-func saveItems(items []map[string]interface{}) (int, error) {
-	db, err := openDb("pocket.sqlite3")
-	if err != nil {
-		return 0, err
-	}
-
-	for _, item := range items {
-		item = transform(item)
-		// TODO: implement insertItem
-		insertItem(item, db)
-		// TODO: implement getAuthors
-		authors, err := getAuthors(item)
-		if err == nil {
-			// TODO: implement insertAllAuthors
-			insertAllAuthors(authors, db)
-		}
-		// TODO: insert into items_authors table
-	}
-}
-
-func transform(item map[string]interface{}) map[string]interface{} {
-	keys := []string {
-        "item_id",
-        "resolved_id",
-        "favorite",
-        "status",
-        "time_added",
-        "time_updated",
-        "time_read",
-        "time_favorited",
-        "is_article",
-        "is_index",
-        "has_video",
-        "has_image",
-        "word_count",
-        "time_to_read",
-        "listen_duration_estimate",
-	}
-
-	for _, key := range keys {
-		if v, ok := item[key]; ok {
-			nv, err := strconv.Atoi(v.(string))
-			if err != nil {
-				continue
-			}
-			item[key] = nv
-		}
-	}
-
-	return item
-}
-
 func FetchCmd() {
-	auth, err := ReadAuth()
+	auth, err := src.ReadAuth()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	totalItems, err := TotalItems(auth)
+	totalItems, err := src.TotalItems(auth)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -158,7 +41,6 @@ func FetchCmd() {
 	fetchUrl := "https://getpocket.com/v3/get"
 
 	for {
-
 		qvals := url.Values{
 			"consumer_key": []string{auth.ConsumerKey},
 			"access_token": []string{auth.AccessToken},
@@ -206,7 +88,7 @@ func FetchCmd() {
 		}
 
 		// FIXME: complete saveItems implementation
-		saveItems(items)
+		src.SaveItems(items)
 
 		offset += PAGE_SIZE
 
