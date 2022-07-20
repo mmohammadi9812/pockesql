@@ -12,7 +12,7 @@ That's why I, along with a lot of other people, believe that owning data is impo
 
 This project helps to own your pocket data by fetch pocket entries and inserting them into a sqlite database
 
-I have to give credit and thank [Simon Willison](https://simonwillison.net/), for his great project [pocket-to-sqlite](https://github.com/dogsheep/pocket-to-sqlite), for which I'm greateful and without it, this could've not be done
+I have to give credit and thank [Simon Willison](https://simonwillison.net/), for his great project [pocket-to-sqlite](https://github.com/dogsheep/pocket-to-sqlite), for which I'm grateful and without it, this could've not be done
 
 ## License
 Copyright 2022 Mohammad Mohamamdi. All rights reserved.

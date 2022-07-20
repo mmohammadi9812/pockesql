@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -125,6 +126,31 @@ func InsertItem(conn *sqlite.Conn, item PocketItem) (err error) {
 	return
 }
 
+func getAuthors(itemMap map[string]interface{}) ([]Author, error) {
+	var (
+		result []Author
+		rawAuthors map[string]map[string]string
+		ok bool
+	)
+	if rawAuthors, ok = itemMap["authors"].(map[string]map[string]string); !ok {
+		return nil, fmt.Errorf("authors not found")
+	}
+	for _, ra := range rawAuthors {
+		var author Author
+		authorDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+			TagName: "json",
+			Result: &author,
+		})
+		if err != nil {
+			return nil, err
+		}
+		authorDecoder.Decode(ra)
+		result = append(result, author)
+	}
+
+	return result, nil
+}
+
 func SaveItems(items []map[string]interface{}) (int, error) {
 	conn, err := SqliteConn("pocket.sqlite3")
 	if err != nil {
@@ -138,12 +164,12 @@ func SaveItems(items []map[string]interface{}) (int, error) {
 
 	for i, itemMap := range items {
 		itemMap = TransformValues(itemMap)
-		// TODO: implement insertItem
+
 		pocketItem, err := DecodeStruct(itemMap)
 		if err := InsertItem(conn, pocketItem); err != nil {
 			return i-1, err
 		}
-		// TODO: implement getAuthors
+
 		authors, err := getAuthors(itemMap)
 		if err == nil {
 			// TODO: implement insertAllAuthors
@@ -151,4 +177,6 @@ func SaveItems(items []map[string]interface{}) (int, error) {
 		}
 		// TODO: insert into items_authors table
 	}
+
+	return len(items), nil
 }

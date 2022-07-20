@@ -3,3 +3,9 @@
 // license that can be found in the LICENSE file.
 
 package src
+
+type Author struct {
+	Id int `json:"author_id",primarykey`
+	Name string `json:"name"`
+	Url string `json:"url"`
+}
