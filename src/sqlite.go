@@ -106,8 +106,8 @@ func CreateTable(conn *sqlite.Conn, inputStruct interface{}) error {
 	return err
 }
 
-func InsertItem(conn *sqlite.Conn, item PocketItem) (err error) {
-	tableFields := getTableFields(item)
+func InsertItem(conn *sqlite.Conn, val interface{}) (err error) {
+	tableFields := getTableFields(val)
 	numFields := len(tableFields)
 	stmt := `INSERT INTO items (`
 	for i, field := range tableFields {
@@ -118,7 +118,7 @@ func InsertItem(conn *sqlite.Conn, item PocketItem) (err error) {
 		}
 	}
 	stmt += " VALUES (" + strings.Repeat("?, ", numFields - 1) + "?);"
-	values := getStructValues(&item)
+	values := getStructValues(&val)
 
 	err = sqlitex.Execute(conn, stmt, &sqlitex.ExecOptions{
 		Args: values,
@@ -151,6 +151,19 @@ func getAuthors(itemMap map[string]interface{}) ([]Author, error) {
 	return result, nil
 }
 
+func insertAllAuthors(conn *sqlite.Conn, authors []Author) (err error) {
+	err = CreateTable(conn, Author{})
+	if err != nil {
+		return
+	}
+	for _, author := range authors {
+		if err = InsertItem(conn, author); err != nil {
+			return
+		}
+	}
+	return nil
+}
+
 func SaveItems(items []map[string]interface{}) (int, error) {
 	conn, err := SqliteConn("pocket.sqlite3")
 	if err != nil {
@@ -171,9 +184,12 @@ func SaveItems(items []map[string]interface{}) (int, error) {
 		}
 
 		authors, err := getAuthors(itemMap)
-		if err == nil {
-			// TODO: implement insertAllAuthors
-			insertAllAuthors(conn, authors)
+		if err != nil {
+			return i-1, err
+		}
+
+		if err = insertAllAuthors(conn, authors); err != nil {
+			return i-1, err
 		}
 		// TODO: insert into items_authors table
 	}
