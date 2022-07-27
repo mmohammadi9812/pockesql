@@ -27,19 +27,6 @@ func SqliteConn(filename string) (*gorm.DB, error) {
 	return db, nil
 }
 
-func Migrate(db *gorm.DB) error {
-	tables := []interface{}{
-		&PocketItem{},
-		&Author{},
-	}
-	for _, table := range tables {
-		if err := db.AutoMigrate(table); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func getAuthors(itemMap map[string]interface{}) ([]Author, error) {
 	var (
 		result     []Author
@@ -71,7 +58,7 @@ func SaveItems(items []map[string]interface{}) (int, error) {
 		return -1, err
 	}
 
-	if err = Migrate(db); err != nil {
+	if err = db.AutoMigrate(&PocketItem{}, &Author{}); err != nil {
 		return -2, err
 	}
 
@@ -79,17 +66,17 @@ func SaveItems(items []map[string]interface{}) (int, error) {
 		itemMap = Transform(itemMap)
 
 		pocketItem, err := DecodeStruct(itemMap)
-		if err := db.Create(&pocketItem).Error; err != nil {
-			return i - 1, err
+		if err != nil {
+			return i-1, nil
 		}
-
 		authors, err := getAuthors(itemMap)
 		if err != nil {
-			return i - 1, err
+			return i-1, nil
 		}
+		pocketItem.Authors = authors
 
-		if err = db.Create(&authors).Error; err != nil {
-			return i - 1, err
+		if err = db.Create(&pocketItem).Error; err != nil {
+			return i-1, err
 		}
 	}
 

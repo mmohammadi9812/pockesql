@@ -9,5 +9,5 @@ type Author struct {
 	Name string `gorm:"column:name"`
 	Url string `gorm:"column:url"`
 
-	PocketItems []*PocketItem `gorm:"many2many:items_authors"`
+	PocketItems []PocketItem `gorm:"many2many:items_authors"`
 }

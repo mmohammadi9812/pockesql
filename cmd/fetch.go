@@ -87,11 +87,13 @@ func FetchCmd() {
 			break
 		}
 
-		// FIXME: complete saveItems implementation
-		src.SaveItems(items)
+		n, err := src.SaveItems(items)
+		if err != nil {
+			log.Fatalf("An error occured while saving fetched items: %v", err)
+		}
 
 		offset += PAGE_SIZE
 
-		bar.Add(1)
+		bar.Add(n)
 	}
 }

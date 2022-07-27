@@ -41,7 +41,7 @@ type PocketItem struct {
 	Images                 string `mapstructure:"images"`
 	Videos                 string `mapstructure:"videos"`
 
-	Authors []*Author `gorm:"many2many:items_authors"`
+	Authors []Author `gorm:"many2many:items_authors"`
 }
 
 func DecodeStruct(item map[string]interface{}) (pocketItem PocketItem, err error) {
