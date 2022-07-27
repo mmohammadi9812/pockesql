@@ -29,6 +29,7 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(authCmd)
+	rootCmd.AddCommand(fetchCmd)
 }
 
 

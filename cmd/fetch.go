@@ -17,12 +17,22 @@ import (
 
 	"git.sr.ht/~mmohammadi9812/pockesql/src"
 	"github.com/schollz/progressbar/v3"
+	"github.com/spf13/cobra"
 )
 
 const (
 	PAGE_SIZE int = 500
 	RETRY_SLEEP int = 3
 )
+
+var fetchCmd = &cobra.Command{
+	Use: "fetch",
+	Short: "Fetch items from pocket api (given that it has been authenticated)",
+	Run: func(_ *cobra.Command, _ []string) {
+		FetchCmd()
+	},
+}
+
 
 func FetchCmd() {
 	auth, err := src.ReadAuth()
