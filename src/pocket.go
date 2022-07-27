@@ -11,39 +11,41 @@ import (
 )
 
 type PocketItem struct {
-	Id int `json:"item_id",primarykey`
-	ResolvedId int `json:"resolved_id"`
-	GivenUrl string `json:"given_url"`
-	GivenTitle string `json:"given_title"`
-	Favorite int `json:"favorite"`
-	Status int `json:"status"`
-	TimeAdded int `json:"time_added"`
-	TimeUpdated int `json:"time_updated"`
-	TimeRead int `json:"time_read"`
-	TimeFavorited int `json:"time_favorited"`
-	SortId int `json:"sort_id"`
-	ResolvedTitle string `json:"resolved_title"`
-	ResolvedUrl string `json:"resolved_url"`
-	Excerpt string `json:"excerpt"`
-	IsArticle int `json:"is_article"`
-	IsIndex int `json:"is_index"`
-	HasVideo int `json:"has_video"`
-	HasImage int `json:"has_image"`
-	WordCount int `json:"word_count"`
-	Lang string `json:"lang"`
-	DomainMetadata string `json:"domain_metadata"`
-	ListenDurationEstimate int `json:"listen_duration_estimate"`
-	TimeToRead int `json:"time_to_read"`
-	AmpUrl string `json:"amp_url"`
-	TopImageUrl string `json:"top_image_url"`
-	Tags string `json:"tags"`
-	Image string `json:"image"`
-	Images string `json:"images"`
-	Videos string `json:"videos"`
+	ID                     uint   `mapstructure:"item_id"`
+	ResolvedId             uint   `mapstructure:"resolved_id"`
+	GivenUrl               string `mapstructure:"given_url"`
+	GivenTitle             string `mapstructure:"given_title"`
+	Favorite               int    `mapstructure:"favorite"`
+	Status                 int    `mapstructure:"status"`
+	TimeAdded              int    `mapstructure:"time_added"`
+	TimeUpdated            int    `mapstructure:"time_updated"`
+	TimeRead               int    `mapstructure:"time_read"`
+	TimeFavorited          int    `mapstructure:"time_favorited"`
+	SortId                 int    `mapstructure:"sort_id"`
+	ResolvedTitle          string `mapstructure:"resolved_title"`
+	ResolvedUrl            string `mapstructure:"resolved_url"`
+	Excerpt                string `mapstructure:"excerpt"`
+	IsArticle              int    `mapstructure:"is_article"`
+	IsIndex                int    `mapstructure:"is_index"`
+	HasVideo               int    `mapstructure:"has_video"`
+	HasImage               int    `mapstructure:"has_image"`
+	WordCount              int    `mapstructure:"word_count"`
+	Lang                   string `mapstructure:"lang"`
+	DomainMetadata         string `mapstructure:"domain_metadata"`
+	ListenDurationEstimate int    `mapstructure:"listen_duration_estimate"`
+	TimeToRead             int    `mapstructure:"time_to_read"`
+	AmpUrl                 string `mapstructure:"amp_url"`
+	TopImageUrl            string `mapstructure:"top_image_url"`
+	Tags                   string `mapstructure:"tags"`
+	Image                  string `mapstructure:"image"`
+	Images                 string `mapstructure:"images"`
+	Videos                 string `mapstructure:"videos"`
+
+	Authors []*Author `gorm:"many2many:items_authors"`
 }
 
 func DecodeStruct(item map[string]interface{}) (pocketItem PocketItem, err error) {
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{TagName: "json", Result: &pocketItem})
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &pocketItem, IgnoreUntaggedFields: true})
 	if err != nil {
 		return
 	}
@@ -51,23 +53,23 @@ func DecodeStruct(item map[string]interface{}) (pocketItem PocketItem, err error
 	return
 }
 
-func TransformValues(item map[string]interface{}) map[string]interface{} {
-	keys := []string {
-        "item_id",
-        "resolved_id",
-        "favorite",
-        "status",
-        "time_added",
-        "time_updated",
-        "time_read",
-        "time_favorited",
-        "is_article",
-        "is_index",
-        "has_video",
-        "has_image",
-        "word_count",
-        "time_to_read",
-        "listen_duration_estimate",
+func Transform(item map[string]interface{}) map[string]interface{} {
+	keys := []string{
+		"item_id",
+		"resolved_id",
+		"favorite",
+		"status",
+		"time_added",
+		"time_updated",
+		"time_read",
+		"time_favorited",
+		"is_article",
+		"is_index",
+		"has_video",
+		"has_image",
+		"word_count",
+		"time_to_read",
+		"listen_duration_estimate",
 	}
 
 	for _, key := range keys {

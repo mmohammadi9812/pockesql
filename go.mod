@@ -6,16 +6,14 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/cobra v1.5.0
-	zombiezen.com/go/sqlite v0.10.0
+	gorm.io/driver/sqlite v1.3.6
+	gorm.io/gorm v1.23.8
 )
 
 require (
-	github.com/google/uuid v1.3.0 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
-	modernc.org/libc v1.16.7 // indirect
-	modernc.org/mathutil v1.4.1 // indirect
-	modernc.org/memory v1.1.1 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/mattn/go-sqlite3 v1.14.14 // indirect
 )
 
 require (
@@ -28,5 +26,4 @@ require (
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/sys v0.0.0-20220702020025-31831981b65f // indirect
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
-	modernc.org/sqlite v1.17.3 // indirect
 )
