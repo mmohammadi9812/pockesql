@@ -94,7 +94,6 @@ func FetchCmd() {
 			log.Fatal(err)
 		}
 
-		// FIXME: empty slice instead of map
 		if reflect.TypeOf(page["list"]).Kind() == reflect.Slice && len(page["list"].([]interface{})) == 0 {
 			break
 		}
@@ -111,7 +110,6 @@ func FetchCmd() {
 		if err != nil || n < 0 {
 			log.Fatalf("An error occured while saving fetched items: %v", err)
 		}
-		log.Printf("saved %d items in database\n", n)
 
 		offset += PAGE_SIZE
 

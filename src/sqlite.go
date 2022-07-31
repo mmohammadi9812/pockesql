@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func SqliteConn(filename string) (*gorm.DB, error) {
@@ -58,7 +59,14 @@ func Migrate(db *gorm.DB, items map[string]map[string]interface{}) error {
 		}
 		break
 	}
-	return db.AutoMigrate(&tags, &pocketItem.DomainMetadata, &pocketItem.Authors, &pocketItem)
+	return db.AutoMigrate(
+		&tags,
+		&pocketItem.DomainMetadata,
+		&pocketItem.Authors,
+		&pocketItem.TopImage,
+		&pocketItem.Images,
+		&pocketItem.Videos,
+		&pocketItem)
 }
 
 func getAuthors(itemMap map[string]interface{}) ([]Author, error) {
@@ -99,7 +107,7 @@ func getTags(itemMap map[string]interface{}) ([]Tag, error) {
 
 	for _, v := range r {
 		var tag Tag
-		tagDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &tag})
+		tagDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &tag, IgnoreUntaggedFields: true})
 		if err != nil {
 			return nil, err
 		}
@@ -138,6 +146,7 @@ func SaveItems(items map[string]map[string]interface{}) (int, error) {
 			pocketItem.Authors = authors
 		}
 
+		// FIXME: tags table is empty
 		tags, err := getTags(itemMap)
 		if err == nil {
 			pocketItem.Tags = tags
@@ -147,8 +156,7 @@ func SaveItems(items map[string]map[string]interface{}) (int, error) {
 			v.PocketItemID = pocketItem.ID
 		}
 
-		// FIXME: sql: converting argument $25 type: unsupported type src.Image, a struct
-		if err = db.Create(&pocketItem).Error; err != nil {
+		if err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem).Error; err != nil {
 			return i - 1, err
 		}
 		i++
