@@ -5,9 +5,9 @@
 package src
 
 type Author struct {
-	ID int `gorm:"column:author_id"`
-	Name string `gorm:"column:name"`
-	Url string `gorm:"column:url"`
+	ID int `gorm:"column:author_id" json:"author_id"`
+	Name string `gorm:"column:name" json:"name"`
+	Url string `gorm:"column:url" json:"url"`
 
 	PocketItems []PocketItem `gorm:"many2many:items_authors"`
 }

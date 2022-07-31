@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -92,15 +93,25 @@ func FetchCmd() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		items, ok := page["list"].([]map[string]interface{})
-		if !ok || len(items) == 0 {
+
+		// FIXME: empty slice instead of map
+		if reflect.TypeOf(page["list"]).Kind() == reflect.Slice && len(page["list"].([]interface{})) == 0 {
 			break
 		}
 
-		n, err := src.SaveItems(items)
-		if err != nil {
+		var (
+			l1 = page["list"].(map[string]interface{})
+			l2 = make(map[string]map[string]interface{}, len(l1))
+		)
+		for k, v := range l1 {
+			l2[k] = v.(map[string]interface{})
+		}
+
+		n, err := src.SaveItems(l2)
+		if err != nil || n < 0 {
 			log.Fatalf("An error occured while saving fetched items: %v", err)
 		}
+		log.Printf("saved %d items in database\n", n)
 
 		offset += PAGE_SIZE
 

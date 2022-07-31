@@ -24,3 +24,5 @@ go.work
 # User
 .env
 pockesql
+auth.json
+*.sqlite3

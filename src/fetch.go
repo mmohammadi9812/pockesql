@@ -6,9 +6,10 @@ package src
 
 import (
 	"encoding/json"
+	"strings"
 )
 
-func TotalItems(auth AuthInfo) (int, error) {
+func TotalItems(auth AuthInfo) (int64, error) {
 	statUrl := "https://getpocket.com/v3/stats"
 	data := map[string]string{
 		"consumer_key": auth.ConsumerKey,
@@ -20,11 +21,15 @@ func TotalItems(auth AuthInfo) (int, error) {
 		return -1, err
 	}
 
-	var objMap map[string]interface{}
-	err = json.Unmarshal(bodyBytes, &objMap)
+	var (
+		objMap map[string]interface{}
+		jd = json.NewDecoder(strings.NewReader(string(bodyBytes)))
+	)
+	jd.UseNumber()
+	err = jd.Decode(&objMap)
 	if err != nil {
 		return -3, err
 	}
 
-	return objMap["count_list"].(int), nil
+	return objMap["count_list"].(json.Number).Int64()
 }
