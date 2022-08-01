@@ -5,12 +5,10 @@
 package src
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 
-	"github.com/mitchellh/mapstructure"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -32,8 +30,6 @@ func SqliteConn(filename string) (*gorm.DB, error) {
 func Migrate(db *gorm.DB, items map[string]map[string]interface{}) error {
 	var (
 		pocketItem PocketItem
-		authors    []Author
-		tags       []Tag
 		err        error
 	)
 	for iid, itemMap := range items {
@@ -49,18 +45,10 @@ func Migrate(db *gorm.DB, items map[string]map[string]interface{}) error {
 		}
 		pocketItem.ID = uint(itemId)
 
-		authors, err = getAuthors(itemMap)
-		if err == nil {
-			pocketItem.Authors = authors
-		}
-		for _, v := range pocketItem.Tags {
-			v.PocketItemID = pocketItem.ID
-			tags = append(tags, v)
-		}
 		break
 	}
 	return db.AutoMigrate(
-		&tags,
+		&pocketItem.Tags,
 		&pocketItem.DomainMetadata,
 		&pocketItem.Authors,
 		&pocketItem.TopImage,
@@ -69,97 +57,55 @@ func Migrate(db *gorm.DB, items map[string]map[string]interface{}) error {
 		&pocketItem)
 }
 
-func getAuthors(itemMap map[string]interface{}) ([]Author, error) {
-	var (
-		result     []Author
-		rawAuthors map[string]map[string]string
-		ok         bool
-	)
-	if rawAuthors, ok = itemMap["authors"].(map[string]map[string]string); !ok {
-		return nil, fmt.Errorf("authors not found")
-	}
-	for _, ra := range rawAuthors {
-		var author Author
-		authorDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-			TagName: "json",
-			Result:  &author,
-		})
-		if err != nil {
-			return nil, err
-		}
-		authorDecoder.Decode(ra)
-		result = append(result, author)
-	}
-
-	return result, nil
-}
-
-func getTags(itemMap map[string]interface{}) ([]Tag, error) {
-	var (
-		out []Tag
-		r   map[string]map[string]string
-		ok  bool
-	)
-
-	if r, ok = itemMap["tags"].(map[string]map[string]string); !ok {
-		return nil, fmt.Errorf("tags not found")
-	}
-
-	for _, v := range r {
-		var tag Tag
-		tagDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &tag, IgnoreUntaggedFields: true})
-		if err != nil {
-			return nil, err
-		}
-		tagDecoder.Decode(v)
-		out = append(out, tag)
-	}
-	return out, nil
-}
-
 func SaveItems(items map[string]map[string]interface{}) (int, error) {
 	db, err := SqliteConn("pocket.sqlite3")
 	if err != nil {
-		return -1, err
-	}
-
-	if err = Migrate(db, items); err != nil {
 		return -2, err
 	}
 
-	i := 0
+	if err = Migrate(db, items); err != nil {
+		return -3, err
+	}
+
 	for iid, itemMap := range items {
 		itemMap = Transform(itemMap)
 
 		pocketItem, err := DecodeStruct(itemMap)
 		if err != nil {
-			return i - 1, err
+			return -4, err
 		}
 		var itemId int
 		if itemId, err = strconv.Atoi(iid); err != nil {
-			return i - 1, err
+			return -5, err
 		}
 		pocketItem.ID = uint(itemId)
 
-		authors, err := getAuthors(itemMap)
-		if err == nil {
-			pocketItem.Authors = authors
+		err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem).Error
+		if err != nil {
+			return -6, err
 		}
 
-		// FIXME: tags table is empty
-		tags, err := getTags(itemMap)
-		if err == nil {
-			pocketItem.Tags = tags
+		if len(pocketItem.Authors) > 0 {
+			err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem.Authors).Error
+			if err != nil {
+				return -7, err
+			}
+			err = db.Model(&Author{}).Association("PocketItems").Append(&pocketItem)
+			if err != nil {
+				return -8, err
+			}
 		}
 
-		for _, v := range pocketItem.Tags {
-			v.PocketItemID = pocketItem.ID
+		if len(pocketItem.Tags) > 0 {
+			err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem.Tags).Error
+			if err != nil {
+				return -9, err
+			}
+			err = db.Model(&Tag{}).Association("PocketItems").Append(&pocketItem)
+			if err != nil {
+				return -10, err
+			}
 		}
-
-		if err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem).Error; err != nil {
-			return i - 1, err
-		}
-		i++
 	}
 
 	return len(items), nil

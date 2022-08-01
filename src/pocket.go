@@ -36,12 +36,16 @@ type PocketItem struct {
 	Images                 []Image        `mapstructure:"images"`
 	Videos                 []Video        `mapstructure:"videos"`
 
-	Tags    []Tag    `gorm:"many2many:items_authors" mapstructure:"-"`
-	Authors []Author `gorm:"many2many:items_authors" mapstructure:"-"`
+	Tags    []Tag    `gorm:"many2many:items_tags;" mapstructure:"tags"`
+	Authors []Author `gorm:"many2many:items_authors;" mapstructure:"authors"`
 }
 
 func DecodeStruct(item map[string]interface{}) (pocketItem PocketItem, err error) {
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &pocketItem, IgnoreUntaggedFields: true})
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result: &pocketItem,
+		IgnoreUntaggedFields: true,
+		WeaklyTypedInput: true,
+	})
 	if err != nil {
 		return
 	}

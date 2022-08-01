@@ -108,7 +108,7 @@ func FetchCmd() {
 
 		n, err := src.SaveItems(l2)
 		if err != nil || n < 0 {
-			log.Fatalf("An error occured while saving fetched items: %v", err)
+			log.Fatalf("Saving fetch items failed [%d]\n%v", n, err)
 		}
 
 		offset += PAGE_SIZE

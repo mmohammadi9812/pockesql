@@ -7,6 +7,8 @@ package src
 import (
 	"reflect"
 	"strconv"
+
+	"golang.org/x/exp/maps"
 )
 
 func transformTags(item map[string]interface{}) map[string]interface{} {
@@ -72,7 +74,11 @@ func transformImages(item map[string]interface{}) map[string]interface{} {
 
 	for ik := range item["images"].(map[string]interface{}) {
 		for _, k := range keys {
-			nv, err := strconv.Atoi(item["images"].(map[string]interface{})[ik].(map[string]interface{})[k].(string))
+			v := item["images"].(map[string]interface{})[ik].(map[string]interface{})[k]
+			if reflect.TypeOf(v).Kind() != reflect.String {
+				continue
+			}
+			nv, err := strconv.Atoi(v.(string))
 			if err != nil {
 				continue
 			}
@@ -172,6 +178,12 @@ func Transform(item map[string]interface{}) map[string]interface{} {
 	item = transformTags(item)
 	item = transformImages(item)
 	item = transformVideo(item)
+
+	for _, key := range []string{"tags", "authors"} {
+		if _, ok := item[key].(map[string]interface{}); ok && reflect.TypeOf(item[key]).Kind() == reflect.Map {
+			item[key] = maps.Values(item[key].(map[string]interface{}))
+		}
+	}
 
 	return item
 }

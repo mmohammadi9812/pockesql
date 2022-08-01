@@ -4,12 +4,12 @@
 
 package src
 
-import 	"gorm.io/gorm"
+import "gorm.io/gorm"
 
 type Author struct {
-	ID int `gorm:"column:author_id" json:"author_id"`
-	Name string `gorm:"column:name" json:"name"`
-	Url string `gorm:"column:url" json:"url"`
+	ID   int    `mapstructure:"author_id"`
+	Name string `mapstructure:"name"`
+	Url  string `mapstructure:"url"`
 
 	PocketItems []PocketItem `gorm:"many2many:items_authors"`
 }
@@ -33,9 +33,10 @@ type Image struct {
 }
 
 type Tag struct {
-	ID           int    `gorm:"primaryKey;autoIncrement:false" mapstructure:"item_id"`
+	ID           int
 	Tag          string `mapstructure:"tag"`
-	PocketItemID uint
+
+	PocketItems []PocketItem `gorm:"many2many:items_tags"`
 }
 
 type DomainMetadata struct {
