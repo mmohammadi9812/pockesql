@@ -4,7 +4,12 @@
 
 package src
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Author struct {
 	ID   int    `mapstructure:"author_id"`
@@ -33,8 +38,8 @@ type Image struct {
 }
 
 type Tag struct {
-	ID           int
-	Tag          string `mapstructure:"tag"`
+	ID  int
+	Tag string `mapstructure:"tag"`
 
 	PocketItems []PocketItem `gorm:"many2many:items_tags"`
 }
@@ -54,8 +59,13 @@ type Video struct {
 	PocketItemID uint   `mapstructure:"item_id"`
 }
 
+type DeletedAt sql.NullTime
+
 type PocketItem struct {
-	ID                     uint           `gorm:"primaryKey;autoIncrement:false" mapstructure:"item_id"`
+	ID        uint `gorm:"primaryKey;autoIncrement:false" mapstructure:"item_id"`
+	CreatedAt time.Time
+	DeletedAt DeletedAt `gorm:"index"`
+
 	ResolvedId             uint           `mapstructure:"resolved_id"`
 	GivenUrl               string         `mapstructure:"given_url"`
 	GivenTitle             string         `mapstructure:"given_title"`

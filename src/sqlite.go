@@ -12,7 +12,24 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SaveItems(items map[string]map[string]interface{}) (int, error) {
+type RawItems map[string]map[string]interface{}
+
+func saveAssoc(db *gorm.DB, pi PocketItem) (err error) {
+	for _, v := range []interface{}{&pi.Authors, &pi.Tags} {
+		err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(v).Error
+		if err != nil {
+			return
+		}
+		err = db.Model(&Author{}).Association("PocketItems").Append(&pi)
+		if err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+func CreateItems(items RawItems) (int, error) {
 	db, err := gorm.Open(sqlite.Open("pocket.sqlite3"), &gorm.Config{})
 	if err != nil {
 		return -2, err
@@ -49,28 +66,29 @@ func SaveItems(items map[string]map[string]interface{}) (int, error) {
 			return -6, err
 		}
 
-		if len(pocketItem.Authors) > 0 {
-			err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem.Authors).Error
-			if err != nil {
-				return -7, err
-			}
-			err = db.Model(&Author{}).Association("PocketItems").Append(&pocketItem)
-			if err != nil {
-				return -8, err
-			}
-		}
-
-		if len(pocketItem.Tags) > 0 {
-			err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem.Tags).Error
-			if err != nil {
-				return -9, err
-			}
-			err = db.Model(&Tag{}).Association("PocketItems").Append(&pocketItem)
-			if err != nil {
-				return -10, err
-			}
+		if err = saveAssoc(db, pocketItem); err != nil {
+			return -7, err
 		}
 	}
 
 	return len(items), nil
+}
+
+func UpdateItems(items RawItems) (int, error) {
+	panic("unimplemented")
+}
+
+func ReadPocketItems() ([]PocketItem, error) {
+	db, err := gorm.Open(sqlite.Open("pocket.sqlite3"), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	var items []PocketItem
+	result := db.Order("created_at desc").Find(&items)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return items, nil
 }
