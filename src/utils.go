@@ -6,7 +6,11 @@ package src
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
+
+	"github.com/mitchellh/mapstructure"
+	"golang.org/x/exp/maps"
 )
 
 func TotalItems(auth AuthInfo) (int64, error) {
@@ -32,4 +36,27 @@ func TotalItems(auth AuthInfo) (int64, error) {
 	}
 
 	return objMap["count_list"].(json.Number).Int64()
+}
+
+func DecodeStruct(item map[string]interface{}) (pocketItem PocketItem, err error) {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result: &pocketItem,
+		IgnoreUntaggedFields: true,
+		WeaklyTypedInput: true,
+	})
+	if err != nil {
+		return
+	}
+	err = decoder.Decode(item)
+	return
+}
+
+func Transform(item map[string]interface{}) map[string]interface{} {
+	for _, key := range []string{"tags", "authors", "videos", "images"} {
+		if _, ok := item[key].(map[string]interface{}); ok && reflect.TypeOf(item[key]).Kind() == reflect.Map {
+			item[key] = maps.Values(item[key].(map[string]interface{}))
+		}
+	}
+
+	return item
 }
