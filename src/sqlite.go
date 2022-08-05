@@ -5,8 +5,12 @@
 package src
 
 import (
+	"log"
+	"os"
 	"strconv"
+	"time"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -14,13 +18,33 @@ import (
 
 type RawItems map[string]map[string]interface{}
 
+func getDatabaseName() string {
+	err := godotenv.Load()
+	defaultName := "pocket.sqlite3"
+	if err != nil {
+		return defaultName
+	}
+	f, ok := os.LookupEnv("DB_NAME")
+	if !ok {
+		return defaultName
+	}
+	return f
+}
+
 func saveAssoc(db *gorm.DB, pi PocketItem) (err error) {
-	for _, v := range []interface{}{&pi.Authors, &pi.Tags} {
+	assocs := make(map[interface{}]interface{}, 1)
+	if len(pi.Authors) > 0 {
+		assocs[&Author{}] = &pi.Authors
+	}
+	if len (pi.Tags) > 0 {
+		assocs[&Tag{}] = &pi.Tags
+	}
+	for k, v := range assocs {
 		err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(v).Error
 		if err != nil {
 			return
 		}
-		err = db.Model(&Author{}).Association("PocketItems").Append(&pi)
+		err = db.Model(k).Association("PocketItems").Append(&pi)
 		if err != nil {
 			return
 		}
@@ -30,7 +54,7 @@ func saveAssoc(db *gorm.DB, pi PocketItem) (err error) {
 }
 
 func CreateItems(items RawItems) (int, error) {
-	db, err := gorm.Open(sqlite.Open("pocket.sqlite3"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
 	if err != nil {
 		return -2, err
 	}
@@ -61,6 +85,8 @@ func CreateItems(items RawItems) (int, error) {
 		}
 		pocketItem.ID = uint(itemId)
 
+		pocketItem.CreatedAt = time.Now()
+
 		err = db.Clauses(clause.Insert{Modifier: "or IGNORE"}).Create(&pocketItem).Error
 		if err != nil {
 			return -6, err
@@ -74,12 +100,8 @@ func CreateItems(items RawItems) (int, error) {
 	return len(items), nil
 }
 
-func UpdateItems(items RawItems) (int, error) {
-	panic("unimplemented")
-}
-
 func ReadPocketItems() ([]PocketItem, error) {
-	db, err := gorm.Open(sqlite.Open("pocket.sqlite3"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
 	if err != nil {
 		return nil, err
 	}
@@ -91,4 +113,14 @@ func ReadPocketItems() ([]PocketItem, error) {
 	}
 
 	return items, nil
+}
+
+func DeleteIds(Ids []uint) error {
+	log.Printf("DEBUG::Ids:%v\n\n", Ids)
+	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
+	if err != nil {
+		return err
+	}
+
+	return db.Delete(&PocketItem{}, Ids).Error
 }

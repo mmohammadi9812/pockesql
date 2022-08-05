@@ -5,24 +5,54 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
 	"git.sr.ht/~mmohammadi9812/pockesql/src"
-	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
 )
 
 var updateCmd = &cobra.Command{
-	Use: "update",
+	Use:   "update",
 	Short: "Update already present database with new contents",
 	Run: func(_ *cobra.Command, _ []string) {
 		UpdateCmd()
 	},
 }
 
+func fetchKeys(args FetchOptions) ([]string, error) {
+	items := make([]string, 1)
+	for {
+		raw, err := fetchPocket(args)
+		if err != nil {
+			return nil, fmt.Errorf("An error occurred while trying to fetch items")
+		}
+		if raw == nil && err == nil {
+			break
+		}
+		keys := maps.Keys(raw)
+		items = append(items, keys...)
+		args.Offset += PAGE_SIZE
+	}
+	return items, nil
+}
+
+func keysToIds(arr []string) map[uint]bool {
+	out := make(map[uint]bool, len(arr))
+	for _, s := range arr {
+		u, e := strconv.ParseUint(s, 10, 64)
+		if e != nil {
+			continue
+		}
+		out[uint(u)] = true
+	}
+	return out
+}
 
 func UpdateCmd() {
+	// TODO: long function, needs refactor
 	auth, err := src.ReadAuth()
 	if err != nil {
 		log.Fatal(err)
@@ -39,39 +69,33 @@ func UpdateCmd() {
 	}
 	currentTotal := int64(len(currentItems))
 
-	if currentTotal == pocketTotal {
-		return
-	} else if currentTotal < pocketTotal {
-		lastItem := currentItems[0]
-		since := strconv.FormatInt(lastItem.CreatedAt.Unix(), 10)
-		offset := 0
-		bar := progressbar.Default(pocketTotal - currentTotal)
-
-		// FIXME: this code is duplicate of code in fetch
-		for {
-			raw, err := fetch(FUrlValues{
-				Auth:   auth,
-				Offset: offset,
-				Since: since,
-			})
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if raw == nil && err == nil {
-				break
-			}
-
-			n, err := src.UpdateItems(raw)
-			if err != nil || n < 0 {
-				log.Fatalf("Saving fetch items failed [%d]\n%v", n, err)
-			}
-
-			offset += PAGE_SIZE
-
-			bar.Add(n)
+	since := strconv.FormatInt(currentItems[0].CreatedAt.Unix(), 10)
+	args, err := createFetchOptions(auth)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if currentTotal < pocketTotal {
+		args.Since = since
+		e := Save(args, pocketTotal - currentTotal)
+		if e.Messaage != nil {
+			log.Fatalf("\n\n[%d] An error occured:\n%v\n\n", e.StatusCode, e.Messaage)
 		}
-	} else {
-		// FIXME: do something if currentTotal > pocketTotal
+	} else if pocketTotal < currentTotal {
+		keys, err := fetchKeys(args)
+		if err != nil {
+			log.Fatal(err)
+		}
+		remoteIds := keysToIds(keys)
+		deletedIds := []uint{}
+		for _, p := range currentItems {
+			_, ok := remoteIds[p.ID]
+			if !ok {
+				deletedIds = append(deletedIds, p.ID)
+			}
+		}
+		if err := src.DeleteIds(deletedIds); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Delted %d items from database\n", len(deletedIds))
 	}
 }

@@ -8,12 +8,14 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
+	"time"
 
 	"git.sr.ht/~mmohammadi9812/pockesql/src"
 	"github.com/schollz/progressbar/v3"
@@ -25,6 +27,8 @@ const (
 	RETRY_SLEEP int = 3
 )
 
+var since string
+
 var fetchCmd = &cobra.Command{
 	Use:     "fetch",
 	Aliases: []string{"get"},
@@ -34,13 +38,18 @@ var fetchCmd = &cobra.Command{
 	},
 }
 
-type FUrlValues struct {
+type FetchOptions struct {
 	Auth   src.AuthInfo
 	Offset int
 	Since  string
 }
 
-func createFetchUrl(args FUrlValues) (*http.Request, error) {
+type Error struct {
+	Messaage error
+	StatusCode int
+}
+
+func createFetchRequest(args FetchOptions) (*http.Request, error) {
 	qvals := url.Values{
 		"consumer_key": []string{args.Auth.ConsumerKey},
 		"access_token": []string{args.Auth.AccessToken},
@@ -64,13 +73,13 @@ func createFetchUrl(args FUrlValues) (*http.Request, error) {
 	return req, nil
 }
 
-func fetch(args FUrlValues) (src.RawItems, error) {
+func fetchPocket(args FetchOptions) (src.RawItems, error) {
 	var (
 		req *http.Request
 		err error
 	)
 
-	if req, err = createFetchUrl(args); err != nil {
+	if req, err = createFetchRequest(args); err != nil {
 		return nil, err
 	}
 
@@ -108,6 +117,51 @@ func fetch(args FUrlValues) (src.RawItems, error) {
 	return l2, nil
 }
 
+func createFetchOptions(auth src.AuthInfo) (FetchOptions, error) {
+	args := FetchOptions{
+		Auth:   auth,
+		Offset: 0,
+	}
+
+	if since != "" {
+		layout := "2000-01-01 15:04"
+		t, err := time.Parse(layout, since)
+		if err != nil {
+			return FetchOptions{}, err
+		}
+
+		args.Since = strconv.FormatInt(t.Unix(), 10)
+	}
+
+	return args, nil
+}
+
+func Save(args FetchOptions, totalItems int64) Error {
+	bar := progressbar.Default(int64(totalItems))
+
+	for {
+		raw, err := fetchPocket(args)
+		if err != nil {
+			return Error{StatusCode: -9, Messaage: fmt.Errorf("An error occurred while trying to fetch items")}
+		}
+
+		if raw == nil && err == nil {
+			break
+		}
+
+		n, err := src.CreateItems(raw)
+		if err != nil || n < 0 {
+			return Error{StatusCode: n, Messaage: err}
+		}
+		args.Offset += PAGE_SIZE
+
+		// TODO: progress-bar micro increment instead of macro increments (n)
+		bar.Add(n)
+	}
+
+	return Error{}
+}
+
 func FetchCmd() {
 	auth, err := src.ReadAuth()
 	if err != nil {
@@ -119,30 +173,13 @@ func FetchCmd() {
 		log.Fatal(err)
 	}
 
-	offset := 0
-	bar := progressbar.Default(int64(totalItems))
+	args, err := createFetchOptions(auth)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	for {
-		raw, err := fetch(FUrlValues{
-			Auth:   auth,
-			Offset: offset,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if raw == nil && err == nil {
-			break
-		}
-
-		n, err := src.CreateItems(raw)
-		if err != nil || n < 0 {
-			log.Fatalf("Saving fetch items failed [%d]\n%v", n, err)
-		}
-
-		offset += PAGE_SIZE
-
-		// TODO: progress-bar micro increment instead of macro increments (n)
-		bar.Add(n)
+	e := Save(args, totalItems)
+	if e.Messaage != nil {
+		log.Fatalf("\n\n[%d] An error occured:\n%v\n\n", e.StatusCode, e.Messaage)
 	}
 }

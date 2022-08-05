@@ -5,7 +5,6 @@
 package src
 
 import (
-	"database/sql"
 	"time"
 
 	"gorm.io/gorm"
@@ -59,12 +58,10 @@ type Video struct {
 	PocketItemID uint   `mapstructure:"item_id"`
 }
 
-type DeletedAt sql.NullTime
-
 type PocketItem struct {
 	ID        uint `gorm:"primaryKey;autoIncrement:false" mapstructure:"item_id"`
 	CreatedAt time.Time
-	DeletedAt DeletedAt `gorm:"index"`
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 
 	ResolvedId             uint           `mapstructure:"resolved_id"`
 	GivenUrl               string         `mapstructure:"given_url"`
