@@ -1,7 +1,7 @@
 # PockeSQL
 ---
 
-# What
+# Why
 [Pocket](https://getpocket.com/), while being a great and (thanks god) free service, is still a third-party service
 
 That means if someday, they decide to charge for their service, or even close (hope not!),
@@ -10,9 +10,23 @@ what happens with your data is at best, a rush to download before it's always go
 
 That's why I, along with a lot of other people, believe that owning data is important
 
-This project helps to own your pocket data by fetch pocket entries and inserting them into a sqlite database
+# What
 
-I have to give credit and thank [Simon Willison](https://simonwillison.net/), for his great project [pocket-to-sqlite](https://github.com/dogsheep/pocket-to-sqlite), for which I'm grateful and without it, this could've not be done
+This project helps to own your pocket account data by retrieving your saved articles to sqlite
+
+you may run `update` command time to time to fetch new saved articles or (soft-)delete removed items
+
+run `pockesql --help` to see other commands and flags
+
+P.S. I have not searched about limits of _Pocket_ applications _yet_, so that's why I'm not comfortable sharing my key
+
+It's assumed that you have created an application in [develop portal](https://getpocket.com/developer/apps/) and consumer key is present in env file
+
+copy `.env.example` file to `.env` file and copy credentials as required
+
+## Credit
+
+This tool is a heavily inspired by [pocket-to-sqlite](https://github.com/dogsheep/pocket-to-sqlite) by [Simon Willison](https://simonwillison.net/), to whom I'm very thankful
 
 ## License
 Copyright 2022 Mohammad Mohamamdi. All rights reserved.
