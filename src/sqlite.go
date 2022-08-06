@@ -115,6 +115,21 @@ func ReadPocketItems() ([]PocketItem, error) {
 	return items, nil
 }
 
+func ReadItemTags(pi PocketItem) ([]Tag, error) {
+	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
+	if err != nil {
+		return nil, err
+	}
+
+	var tags []Tag
+	err = db.Model(&pi).Association("Tags").Find(&tags)
+	if err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}
+
 func DeleteIds(Ids []uint) error {
 	log.Printf("DEBUG::Ids:%v\n\n", Ids)
 	db, err := gorm.Open(sqlite.Open(getDatabaseName()))

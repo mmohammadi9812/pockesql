@@ -15,12 +15,14 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.14 // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 )
 
 require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
+	github.com/niklasfasching/go-org v1.6.5
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/schollz/progressbar/v3 v3.8.6
 	github.com/spf13/pflag v1.0.5 // indirect

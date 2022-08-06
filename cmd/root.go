@@ -33,6 +33,7 @@ func init() {
 	fetchCmd.Flags().StringVarP(&since, "since", "s", "", "fetch since time {yyyy-mm-dd hh:mm}")
 	rootCmd.AddCommand(fetchCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(convertCmd)
 }
 
 
