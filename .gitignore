@@ -27,3 +27,4 @@ pockesql
 auth.json
 *.sqlite3
 *.bak
+*.xlsx

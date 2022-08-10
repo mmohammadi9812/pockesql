@@ -15,14 +15,12 @@ import (
 )
 
 var authCmd = &cobra.Command{
-	Use: "auth",
+	Use:   "auth",
 	Short: "Authenticate your account to allow fetching entries",
 	Run: func(_ *cobra.Command, _ []string) {
 		AuthenticateCmd()
 	},
 }
-
-
 
 func AuthenticateCmd() {
 	consumerKey, ok := os.LookupEnv("POCKET_CONSUMER_KEY")
@@ -35,7 +33,7 @@ func AuthenticateCmd() {
 		log.Fatalf("An error occured while trying to fetch request token: %v", err)
 	}
 
-	src.AskUser(requestToken)
+	src.OpenConfirmUrl(requestToken)
 
 	username, accessToken, err := src.AutherizeUser(consumerKey, requestToken)
 	if err != nil {
@@ -44,7 +42,7 @@ func AuthenticateCmd() {
 
 	authInfo := src.AuthInfo{
 		ConsumerKey: consumerKey,
-		Username: username,
+		Username:    username,
 		AccessToken: accessToken,
 	}
 	err = src.WriteFile(authInfo, "auth.json")

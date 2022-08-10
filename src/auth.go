@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/pkg/browser"
 )
 
 type AuthInfo struct {
@@ -47,7 +49,7 @@ func sendJson(url string, data map[string]string) (string, error) {
 }
 
 func RequestToken(consumerKey string) (string, error) {
-	data := map[string]string {
+	data := map[string]string{
 		"consumer_key": consumerKey,
 		"redirect_uri": "https://getpocket.com/connected_applications",
 	}
@@ -65,9 +67,9 @@ func RequestToken(consumerKey string) (string, error) {
 }
 
 func AutherizeUser(consumerKey, requestToken string) (string, string, error) {
-	data := map[string]string {
+	data := map[string]string{
 		"consumer_key": consumerKey,
-		"code": requestToken,
+		"code":         requestToken,
 	}
 	body, err := sendJson("https://getpocket.com/v3/oauth/authorize", data)
 	if err != nil {
@@ -96,10 +98,10 @@ func WriteFile(data AuthInfo, filename string) error {
 	return nil
 }
 
-func AskUser(requestToken string) {
+func OpenConfirmUrl(requestToken string) {
 	codesUrl := fmt.Sprintf("https://getpocket.com/auth/authorize?request_token=%s&redirect_uri=%s",
-							requestToken, "https://getpocket.com/connected_applications")
-	fmt.Println("Please visit this page and sign-in to your pocket account: ", codesUrl)
+		requestToken, "https://getpocket.com/connected_applications")
+	browser.OpenURL(codesUrl)
 	fmt.Println("Once you have signed in there, hit <enter> to continue")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
