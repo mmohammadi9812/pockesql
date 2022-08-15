@@ -18,7 +18,7 @@ import (
 
 type RawItems map[string]map[string]interface{}
 
-func getDatabaseName() string {
+func GetDatabaseName() string {
 	err := godotenv.Load()
 	defaultName := "pocket.sqlite3"
 	if err != nil {
@@ -54,7 +54,7 @@ func saveAssoc(db *gorm.DB, pi PocketItem) (err error) {
 }
 
 func CreateItems(items RawItems) (int, error) {
-	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
+	db, err := gorm.Open(sqlite.Open(GetDatabaseName()))
 	if err != nil {
 		return -2, err
 	}
@@ -101,7 +101,7 @@ func CreateItems(items RawItems) (int, error) {
 }
 
 func ReadPocketItems() ([]PocketItem, error) {
-	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
+	db, err := gorm.Open(sqlite.Open(GetDatabaseName()))
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func ReadPocketItems() ([]PocketItem, error) {
 }
 
 func ReadItemTags(pi PocketItem) ([]Tag, error) {
-	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
+	db, err := gorm.Open(sqlite.Open(GetDatabaseName()))
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func ReadItemTags(pi PocketItem) ([]Tag, error) {
 
 func DeleteIds(Ids []uint) error {
 	log.Printf("DEBUG::Ids:%v\n\n", Ids)
-	db, err := gorm.Open(sqlite.Open(getDatabaseName()))
+	db, err := gorm.Open(sqlite.Open(GetDatabaseName()))
 	if err != nil {
 		return err
 	}

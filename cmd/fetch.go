@@ -124,8 +124,7 @@ func createFetchOptions(auth src.AuthInfo) (FetchOptions, error) {
 	}
 
 	if since != "" {
-		layout := "2000-01-01 15:04"
-		t, err := time.Parse(layout, since)
+		t, err := time.Parse("2006-01-02 15:04", since)
 		if err != nil {
 			return FetchOptions{}, err
 		}
@@ -142,7 +141,7 @@ func Save(args FetchOptions, totalItems int64) Error {
 	for {
 		raw, err := fetchPocket(args)
 		if err != nil {
-			return Error{StatusCode: -9, Messaage: fmt.Errorf("An error occurred while trying to fetch items")}
+			return Error{StatusCode: -9, Messaage: fmt.Errorf("an error occurred while trying to fetch items")}
 		}
 
 		if raw == nil && err == nil {

@@ -16,6 +16,7 @@ import (
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
+	Aliases: []string{"u"},
 	Short: "Update already present database with new contents",
 	Run: func(_ *cobra.Command, _ []string) {
 		UpdateCmd()
@@ -27,7 +28,7 @@ func fetchKeys(args FetchOptions) ([]string, error) {
 	for {
 		raw, err := fetchPocket(args)
 		if err != nil {
-			return nil, fmt.Errorf("An error occurred while trying to fetch items")
+			return nil, fmt.Errorf("an error occurred while trying to fetch items")
 		}
 		if raw == nil && err == nil {
 			break
