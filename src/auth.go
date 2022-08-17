@@ -5,16 +5,16 @@
 package src
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
+	"github.com/ncruces/zenity"
 	"github.com/pkg/browser"
 )
 
@@ -91,7 +91,7 @@ func WriteFile(data AuthInfo, filename string) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(filename, jsonBytes, 0644)
+	err = os.WriteFile(filename, jsonBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -102,12 +102,15 @@ func OpenConfirmUrl(requestToken string) {
 	codesUrl := fmt.Sprintf("https://getpocket.com/auth/authorize?request_token=%s&redirect_uri=%s",
 		requestToken, "https://getpocket.com/connected_applications")
 	browser.OpenURL(codesUrl)
-	fmt.Println("Once you have signed in there, hit <enter> to continue")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	zenity.Question("Click ok once you have authorized",
+		zenity.Title("Authorization"),
+		zenity.OKLabel("Completed"))
+	// Sleep a second before trying to rush, in case it rushes faster than site acknowledges
+	time.Sleep(time.Second)
 }
 
 func ReadAuth() (AuthInfo, error) {
-	fbytes, err := ioutil.ReadFile("auth.json")
+	fbytes, err := os.ReadFile("auth.json")
 	if err != nil {
 		return AuthInfo{}, err
 	}

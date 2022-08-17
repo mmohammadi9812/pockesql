@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -23,6 +24,11 @@ var authCmd = &cobra.Command{
 }
 
 func AuthenticateCmd() {
+	if _, err := os.Stat("auth.json"); err == nil {
+		fmt.Println("You're already authenticated")
+		return
+	}
+
 	consumerKey, ok := os.LookupEnv("POCKET_CONSUMER_KEY")
 	if !ok {
 		log.Fatal("Consumer key was not found")
