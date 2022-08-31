@@ -28,3 +28,4 @@ auth.json
 *.sqlite3
 *.bak
 *.xlsx
+.vscode/launch.json

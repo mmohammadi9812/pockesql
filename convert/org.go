@@ -5,8 +5,8 @@
 package convert
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 
 	"git.sr.ht/~mmohammadi9812/pockesql/src"
 	"github.com/niklasfasching/go-org/org"
@@ -85,7 +85,7 @@ func ToOrg(filename string) {
 		writer.WriteHeadline(headline)
 	}
 
-	err = ioutil.WriteFile(filename, []byte(writer.String()), 0644)
+	err = os.WriteFile(filename, []byte(writer.String()), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

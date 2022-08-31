@@ -6,6 +6,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ncruces/zenity v0.9.0
+	github.com/schollz/progressbar/v3 v3.9.0
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	gorm.io/driver/sqlite v1.3.6
@@ -16,8 +17,12 @@ require (
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect
 	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/randall77/makefat v0.0.0-20210315173500-7ddd0e42c844 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	golang.org/x/image v0.0.0-20220722155232-062f8c9fd539 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 )
 
 require (
@@ -37,13 +42,8 @@ require (
 
 require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/mattn/go-runewidth v0.0.13 // indirect
-	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/niklasfasching/go-org v1.6.5
-	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/schollz/progressbar/v3 v3.8.6
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664 // indirect
-	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
 )
