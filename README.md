@@ -1,7 +1,14 @@
 # PockeSQL
 ---
 
-# Why
+## STATUS
+I see this project as completed, and it probably won't receive new features
+
+So, consider this project in _maintanance_ mode, where it may or may not receive bug fixes,
+
+but no new features
+
+## Why
 [Pocket](https://getpocket.com/), while being a great and (thanks god) free service, is still a third-party service
 
 That means if someday, they decide to charge for their service, or even close (hope not!),
@@ -10,7 +17,7 @@ what happens with your data is at best, a rush to download before it's always go
 
 That's why I, along with a lot of other people, believe that owning data is important
 
-# What
+## What
 
 This project helps to own your pocket account data by retrieving your saved articles to sqlite
 
@@ -24,7 +31,7 @@ It's assumed that you have created an application in [develop portal](https://ge
 
 copy `.env.example` file to `.env` file and copy credentials as required
 
-## Credit
+### Credit
 
 This tool is a heavily inspired by [pocket-to-sqlite](https://github.com/dogsheep/pocket-to-sqlite) by [Simon Willison](https://simonwillison.net/), to whom I'm very thankful
 
